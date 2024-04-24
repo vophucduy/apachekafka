@@ -14,6 +14,6 @@ config = {
     },
     "schema_registry": {
         "url": "<your endpoint>",
-        "basic.auth.user.info": "<>:G2aUBIPUf3gbhB2at/h2HNvEp0zc8osSgWOzqqvKohZZHc9dBDVfSQ0JyGHj6zL7",
+        "basic.auth.user.info": "<your credential api key>:<your credential api secret>",
     }
 }
