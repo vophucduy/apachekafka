@@ -14,14 +14,17 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka import SerializingProducer
 
 
-def fetch_playlist_items_page(google_api_key, youtube_playlist_id, page_token=None):
-    response = requests.get("https://www.googleapis.com/youtube/v3/playlistItems",
-                            params={
-                                "key": google_api_key,
-                                "playlistId": youtube_playlist_id,
-                                "part": "contentDetails",
-                                "pageToken": page_token
-                            })
+def fetch_playlist_items_page(google_api_key, 
+                              youtube_playlist_id, 
+                              page_token=None):
+    response = requests.get(
+                        "https://www.googleapis.com/youtube/v3/playlistItems",
+                        params={
+                            "key": google_api_key,
+                            "playlistId": youtube_playlist_id,
+                            "part": "contentDetails",
+                            "pageToken": page_token
+                        })
 
     payload = json.loads(response.text)
 
@@ -30,14 +33,17 @@ def fetch_playlist_items_page(google_api_key, youtube_playlist_id, page_token=No
     return payload
 
 
-def fetch_videos_page(google_api_key, video_id, page_token=None):
-    response = requests.get("https://www.googleapis.com/youtube/v3/videos",
-                            params={
-                                "key": google_api_key,
-                                "id": video_id,
-                                "part": "snippet,statistics",
-                                "pageToken": page_token
-                            })
+def fetch_videos_page(google_api_key, 
+                    video_id, 
+                    page_token=None):
+    response = requests.get(
+                        "https://www.googleapis.com/youtube/v3/videos",
+                        params={
+                            "key": google_api_key,
+                            "id": video_id,
+                            "part": "snippet,statistics",
+                            "pageToken": page_token
+                        })
 
     payload = json.loads(response.text)
 
@@ -46,38 +52,53 @@ def fetch_videos_page(google_api_key, video_id, page_token=None):
     return payload
 
 
-def fetch_playlist_items(google_api_key, youtube_playlist_id, page_token=None):
-    payload = fetch_playlist_items_page(google_api_key, youtube_playlist_id, page_token)
+def fetch_playlist_items(google_api_key, 
+                        youtube_playlist_id, 
+                        page_token=None):
+    payload = fetch_playlist_items_page(google_api_key, 
+                                        youtube_playlist_id, 
+                                        page_token)
 
     yield from payload["items"]
 
     next_page_token = payload.get("nextPageToken")
 
     if next_page_token is not None:
-        yield from fetch_playlist_items(google_api_key, youtube_playlist_id, next_page_token)
+        yield from fetch_playlist_items(google_api_key, 
+                                        youtube_playlist_id, 
+                                        next_page_token)
 
 
-def fetch_videos(google_api_key, youtube_playlist_id, page_token=None):
-    payload = fetch_videos_page(google_api_key, youtube_playlist_id, page_token)
+def fetch_videos(google_api_key, 
+                youtube_playlist_id, 
+                page_token=None):
+    payload = fetch_videos_page(google_api_key, 
+                                youtube_playlist_id, 
+                                page_token)
 
     yield from payload["items"]
 
     next_page_token = payload.get("nextPageToken")
 
     if next_page_token is not None:
-        yield from fetch_videos(google_api_key, youtube_playlist_id, next_page_token)
+        yield from fetch_videos(google_api_key, 
+                                youtube_playlist_id, 
+                                next_page_token)
 
-def fetch_comments(google_api_key, video_id, page_token=None):
+def fetch_comments(google_api_key, 
+                   video_id, 
+                   page_token=None):
     comments = []
     while True:
-        response = requests.get("https://www.googleapis.com/youtube/v3/commentThreads",
-                                params={
-                                    "key": google_api_key,
-                                    "videoId": video_id,
-                                    "part": "snippet",
-                                    "textFormat": "plainText",
-                                    "pageToken": page_token
-                                })
+        response = requests.get(
+                            "https://www.googleapis.com/youtube/v3/commentThreads",
+                            params={
+                                "key": google_api_key,
+                                "videoId": video_id,
+                                "part": "snippet",
+                                "textFormat": "plainText",
+                                "pageToken": page_token
+                            })
         data = response.json()
         for item in data.get("items", []):
             comment = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
@@ -118,7 +139,8 @@ def main():
     logging.info("START")
 
     schema_registry_client = SchemaRegistryClient(config["schema_registry"])
-    youtube_videos_value_schema = schema_registry_client.get_latest_version("youtube_videos-value")
+    youtube_videos_value_schema = schema_registry_client.get_latest_version(
+                                                    "youtube_videos-value")
 
     kafka_config = config["kafka"] | {
         "key.serializer": StringSerializer(),
@@ -132,7 +154,8 @@ def main():
     google_api_key = config["google_api_key"]
     youtube_playlist_id = config["youtube_playlist_id"]
 
-    for video_item in fetch_playlist_items(google_api_key, youtube_playlist_id):
+    for video_item in fetch_playlist_items(google_api_key, 
+                                           youtube_playlist_id):
         video_id = video_item["contentDetails"]["videoId"]
         comments = fetch_comments(google_api_key, video_id)
         # comments = fetch_comments(google_api_key, video_id)
@@ -170,4 +193,3 @@ if __name__ == "__main__":
         schedule.run_pending()
         time.sleep(1)
         # print("Running...")
-
