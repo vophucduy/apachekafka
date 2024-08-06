@@ -1,4 +1,4 @@
-confluent_kafka >= 1.8
+# Use confluent cloud as kafka server
 python-dateutil >= 2.8
 types-requests >= 2.27
 requests >= 2.25
