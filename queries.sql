@@ -1,3 +1,5 @@
+# Queries used in confluent cloud
+  
 CREATE STREAM youtube_videos (
   video_id VARCHAR KEY,
   title VARCHAR,
